@@ -1,0 +1,25 @@
+server:
+  name: "mcp-gateway-test"
+  version: "1.0.0"
+  listen_addr: ":9021"
+
+backends:
+  - name: "mock"
+    command: "E:\\project\\n\\mcp-gateway\\test\\mock-server.exe"
+    args: []
+    description: "Mock MCP server for testing"
+    enabled: true
+    timeout_sec: 10
+
+security:
+  auth:
+    enabled: false
+  injection:
+    enabled: true
+    block_threshold: 0.8
+    warn_threshold: 0.5
+
+logging:
+  level: "debug"
+  format: "text"
+  audit_file: ""

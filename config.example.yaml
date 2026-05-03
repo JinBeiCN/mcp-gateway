@@ -1,0 +1,83 @@
+# MCP Security Gateway Configuration
+# ====================================
+
+server:
+  name: "mcp-gateway"
+  version: "1.0.0"
+  listen_addr: ":9020"
+  max_connections: 100
+  read_timeout_sec: 30
+  write_timeout_sec: 60
+
+backends:
+  # Example: Filesystem MCP server
+  - name: "filesystem"
+    command: "npx"
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+    description: "Filesystem access via MCP"
+    enabled: true
+    # Restrict which tools this backend exposes
+    allowed_tools: []
+    denied_tools: []
+    rate_limit:
+      requests_per_sec: 10
+      burst_size: 20
+    timeout_sec: 30
+
+  # Example: GitHub MCP server
+  - name: "github"
+    command: "npx"
+    args: ["-y", "@modelcontextprotocol/server-github"]
+    env:
+      GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_TOKEN}"
+    description: "GitHub API access via MCP"
+    enabled: true
+    allowed_tools:
+      - "search_repositories"
+      - "get_file_contents"
+      - "list_issues"
+    denied_tools:
+      - "create_pull_request"
+      - "merge_pull_request"
+    rate_limit:
+      requests_per_sec: 5
+      burst_size: 10
+    timeout_sec: 45
+
+  # Example: PostgreSQL MCP server
+  # - name: "postgres"
+  #   command: "npx"
+  #   args: ["-y", "@modelcontextprotocol/server-postgres", "${DATABASE_URL}"]
+  #   description: "Database access via MCP"
+  #   enabled: false
+
+security:
+  auth:
+    enabled: false  # Set to true to require authentication
+    api_keys:
+      # - key: "sk-gateway-admin-key-001"
+      #   client_id: "admin"
+      #   permissions: ["*"]
+      #   rate_limit:
+      #     requests_per_sec: 50
+      #     burst_size: 100
+      # - key: "sk-gateway-readonly-key-002"
+      #   client_id: "readonly-user"
+      #   permissions: ["tool:filesystem:read_file", "tool:github:search_repositories"]
+      #   rate_limit:
+      #     requests_per_sec: 10
+      #     burst_size: 20
+    # jwt_secret: "your-jwt-secret-here"
+
+  injection:
+    enabled: true
+    block_threshold: 0.8    # Block when confidence exceeds 80%
+    warn_threshold: 0.5     # Log warnings when confidence exceeds 50%
+    # Custom blocked patterns (regex)
+    blocked_patterns: []
+    #   - "(?i)your-custom-pattern-here"
+
+logging:
+  level: "info"       # debug, info, warn, error
+  format: "json"      # json or text
+  audit_file: ""      # empty = stderr, or path to file
